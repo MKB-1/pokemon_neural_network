@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block style %}
+<style>
+    #friendly-hp-bar{
+        width: {{ js['friendly percent hp'] * 100}}%;
+        background-color:   {% if js['friendly percent hp'] >= 0.66 %}
+                                forestgreen
+                            {% elif js['friendly percent hp'] >= 0.33 %}
+                                goldenrod
+                            {% else %}
+                                orangered
+                            {% endif %};
+    }
+    #enemy-hp-bar{
+        width: {{ js['enemy percent hp'] * 100}}%;
+        background-color:   {% if js['enemy percent hp'] >= 0.66 %}
+                                forestgreen
+                            {% elif js['enemy percent hp'] >= 0.33 %}
+                                goldenrod
+                            {% else %}
+                                orangered
+                            {% endif %};
+    }
+</style>
+{% endblock style %}
+
+{% block simulation %}
+<div id="simulation-container" augmented-ui="tl-round tr-round br-round bl-round r-clip-y exe">
+
+    <div id="friendly-hp" class="simulation-hitpoints">
+        <h5 class="name">{{ js['friendly name'] }}</h5>
+        <div class="hp-container">
+            <div class="hp">{{ js['friendly current hp'] }}/{{ js['friendly max hp'] }}</div>
+            <div class="hp-bar-container">
+                <div id="friendly-hp-bar"></div>
+            </div>
+        </div>
+        <div class="status">
+            Status: NONE
+        </div>
+    </div>
+
+    <div id="enemy-hp" class="simulation-hitpoints">
+        <h5 class="name">{{ js['enemy name'] }}</h5>
+        <div class="hp-container">
+            <div class="hp">{{ js['enemy current hp'] }}/{{ js['enemy max hp'] }}</div>
+            <div class="hp-bar-container">
+                <div id="enemy-hp-bar"></div>
+            </div>
+        </div>
+        <div class="status">
+            Status: NONE
+        </div>
+
+    </div>
+
+    <div id="friendly-pokemon-container" class="sprite-container">
+        <img src="https://img.pokemondb.net/sprites/black-white/back-normal/{{ js['friendly name'].lower() }}.png" alt="MISSING SPRITE" class="pokemon-sprite">
+    </div>
+    <div id="enemy-pokemon-container" class="sprite-container">
+        <img src="https://img.pokemondb.net/sprites/black-white/normal/{{ js['enemy name'].lower() }}.png" alt="MISSING SPRITE" class="pokemon-sprite">
+    </div>
+</div>
+{% endblock simulation %}
+
+{% block interface %}
+<div id="pick-move-container" augmented-ui="bl-round br-round tr-round tl-round exe">
+    <div class="pokemon-move" id="move-1">{{ js['moves'][0] }}</div>
+    <div class="pokemon-move" id="move-2">{{ js['moves'][1] }}</div>
+    <div class="pokemon-move" id="move-3">{{ js['moves'][2] }}</div>
+    <div class="pokemon-move" id="move-4">{{ js['moves'][3] }}</div>
+    <div id="move-description">
+        <div id="move-power">Power: 30</div>
+        <div id="move-acc">Accuracy: 100</div>
+        <div id="move-effect">Effect: None</div>
+    </div>
+</div>
+{% endblock interface %}
+
+
+{% block script %}
+<script>
+    let moves = document.querySelectorAll('.pokemon-move')
+    const container = document.getElementById('pick-move-container')
+    const xhttp = new XMLHttpRequest();
+    for (let i=0; i<moves.length; i++){
+        moves[i].addEventListener('click', (e)=>{
+            const log = document.createElement('div')
+            log.id = "log"
+            log.innerHTML = "Processing..."
+            container.appendChild(log)
+
+            xhttp.open("POST", "/neural-network", false)
+            xhttp.setRequestHeader('Content-Type', 'application/json');
+            xhttp.send(JSON.stringify(e.target.innerHTML))
+
+            xhttp.open("GET", "/gui", false)
+            xhttp.send()
+
+            const gui = JSON.parse(xhttp.response)
+            console.log(gui)
+            console.log(gui['friendly first'])
+            let fastPokemon, fastPokemonName, fastPokemonHpLoss, fastPokemonMove, fastHpPercent,
+                slowPokemon, slowPokemonName, slowPokemonHpLoss, slowPokemonMove, slowHpPercent
+
+            if(gui['friendly first']){
+                fastPokemon = 'friendly'
+                fastPokemonName = '{{ js['friendly name'] }}'
+                fastPokemonHpLoss = gui['friendly hp loss']
+                fastPokemonMove = gui['friendly move']
+                fastHpPercent = gui['friendly hp percent']
+                slowPokemon = 'enemy'
+                slowPokemonName = '{{ js['enemy name'] }}'
+                slowPokemonHpLoss = gui['enemy hp loss']
+                slowPokemonMove = gui['enemy move']
+                slowHpPercent = gui['enemy hp percent']
+
+            } else{
+                fastPokemon = 'enemy'
+                fastPokemonName = '{{ js['enemy name'] }}'
+                fastPokemonHpLoss = gui['enemy hp loss']
+                fastPokemonMove = gui['enemy move']
+                fastHpPercent = gui['enemy hp percent']
+                slowPokemon = 'friendly'
+                slowPokemonName = '{{ js['friendly name'] }}'
+                slowPokemonHpLoss = gui['friendly hp loss']
+                slowPokemonMove = ['friendly Move']
+                slowHpPercent = gui['friendly hp percent']
+            }
+
+            log.innerHTML = `
+                ${fastPokemonName} used ${fastPokemonMove}.
+            `
+            console.log('after fast attack')
+            let slowHpBar = document.getElementById(`${slowPokemon}-hp-bar`)
+            let fastHpBar = document.getElementById(`${fastPokemon}-hp-bar`)
+            let slowColor, fastColor
+            if (slowHpPercent >= 0.67){
+                slowColor = 'forestgreen'
+            } else if (slowHpPercent >= 0.33){
+                slowColor = 'goldenrod'
+            } else{
+                slowColor = 'orangered'
+            }
+            if (fastHpPercent >= 0.67){
+                fastColor = 'forestgreen'
+            } else if (fastHpPercent >= 0.33){
+                fastColor = 'goldenrod'
+            } else{
+                fastColor = 'orangered'
+            }
+
+            console.log(slowColor, fastColor)
+            console.log(fastHpPercent, slowHpPercent)
+
+            setTimeout(()=>{
+                log.innerHTML = `
+                ${slowPokemonName} lost ${slowPokemonHpLoss} hit points.`
+                slowHpBar.style.width = `${slowHpPercent * 100}%`
+                slowHpBar.style.background = `${slowColor}`
+
+                setTimeout(()=>{
+                    log.innerHTML = `
+                    ${slowPokemonName} used ${slowPokemonMove}.`
+                        setTimeout(()=>{
+                            log.innerHTML = `
+                            ${fastPokemonName} lost ${fastPokemonHpLoss} hit points.`
+                            fastHpBar.style.width = `${fastHpPercent * 100}%`
+                            fastHpBar.style.background = `${fastColor}`
+                            setTimeout(()=>{
+                                window.location.href = "/fight"
+                            }, 2000)
+                        }, 2000)
+                    }, 2000)
+                }, 2000)
+            }, 2000)
+
+    }
+
+</script>
+{% endblock script %}

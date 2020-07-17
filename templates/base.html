@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Battles</title>
+
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/augmented-ui/augmented.css">
+    <link rel="stylesheet" href="../static/style.css">
+    {% block style %}{% endblock style %}
+
+</head>
+
+<body>
+    <h3 class="center">Pokemon Battle Simulator</h3>
+    <div class="container" id="pokedex" augmented-ui="tr-round tl-round bl-round br-clip-y exe">
+        <div class="row" style="padding-top: 1.5rem;">
+            <div class="col s10 offset-s1">
+                {% block simulation %}
+                {% endblock simulation %}
+            </div>
+            <div class="col s1" id="camera-flair">
+                    <img src="static/img/blue led circle.png" alt="" id="blue-led">
+                    <img src="static/img/Circle-yellow.svg" alt="" id="yellow-circle">
+                    <img src="static/img/green circle.png" alt="" id="green-circle">
+            </div>
+        </div>
+        <div id="delimiter"></div>
+        <div class="row">
+            <div class="col s1" id="speaker-flair">
+                    <div id="speaker-1"></div>
+                    <div id="speaker-2"></div>
+            </div>
+            <div class="col s10">
+                <div id="user-input-interface">
+                    {% block interface %}
+                    {% endblock interface %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+    {% block script %}
+    <script>
+
+        function shuffle(a) {
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+}
+        const xhttp = new XMLHttpRequest();
+        let data = {}
+
+        document.addEventListener('DOMContentLoaded', function() {
+            let elems = document.querySelectorAll('.choose-pokemon-input');
+            let instances = M.Autocomplete.init(elems, {'data': names, 'limit': 2});
+            for (const pokemon of elems){
+              pokemon.addEventListener('keypress', (e)=>{
+                if(e.key === 'Enter'){
+                    const container = pokemon.parentElement.parentElement
+                    const name = pokemon.value
+                    if (!(name in names)) {
+                        return
+                    }
+                    const friend_or_foe = container.parentElement.id
+                    data[friend_or_foe] = name
+
+                    xhttp.open("POST", "/choose-pokemon", false)
+                    xhttp.setRequestHeader('Content-Type', 'application/json');
+                    xhttp.send(JSON.stringify(name))
+
+                    let moveset = JSON.parse(xhttp.response)
+                    let moveset_object = Object.assign(...moveset.map(k => ({ [k]: null})))
+                    let moveset_arr = Object.keys(moveset_object)
+
+                    let move = `${friend_or_foe}-move`
+                    container.innerHTML = `
+                      <div class="choose-moves" id="choose-${friend_or_foe}">
+                                        <div class="input-field move-input">
+                                            <input type="text" placeholder="Random Move" id="autocomplete-input-1" class="autocomplete ${move}">
+                                        </div>
+                                        <div class="input-field move-input">
+                                            <input type="text" placeholder="Random Move" id="autocomplete-input-2" class="autocomplete ${move}">
+                                        </div>
+                                        <div class="input-field move-input">
+                                            <input type="text" placeholder="Random Move" id="autocomplete-input-3" class="autocomplete ${move}">
+                                        </div>
+                                        <div class="input-field move-input">
+                                            <input type="text" placeholder="Random Move" id="autocomplete-input-4" class="autocomplete ${move}">
+                                        </div>
+                                        <img src="static/img/dice.png" alt="" class="randomize-moves" id="randomize-${friend_or_foe}">
+                                    </div>
+                      `
+
+                    let dice = document.getElementById(`randomize-${friend_or_foe}`)
+                    dice.addEventListener('click', ()=>{
+                        let move_inputs = document.querySelectorAll(`.${move}`)
+                        shuffle(moveset_arr)
+                        for(let i=0; i<4; i++){
+                            move_inputs.item(i).value = moveset_arr[i]
+                        }
+
+                    })
+
+
+
+                    let elems = document.querySelectorAll(`.${move}`);
+                    let instances = M.Autocomplete.init(elems, {'data': moveset_object, 'limit': 3});
+                }
+              })
+            }
+          });
+
+        const names_object = {"0":"Bulbasaur","1":"Ivysaur","2":"Venusaur","3":"Charmander","4":"Charmeleon","5":"Charizard","6":"Squirtle","7":"Wartortle","8":"Blastoise","9":"Caterpie","10":"Butterfree", "12":"Beedrill","13":"Pidgey","14":"Pidgeotto","15":"Pidgeot","16":"Rattata","17":"Raticate","18":"Spearow","19":"Fearow","20":"Ekans","21":"Arbok","22":"Pikachu","23":"Raichu","24":"Sandshrew","25":"Sandslash","26":"Nidoranu2640","27":"Nidorina","28":"Nidoqueen","29":"Nidoranu2642","30":"Nidorino","31":"Nidoking","32":"Clefairy","33":"Clefable","34":"Vulpix","35":"Ninetales","36":"Jigglypuff","37":"Wigglytuff","38":"Zubat","39":"Golbat","40":"Oddish","41":"Gloom","42":"Vileplume","43":"Paras","44":"Parasect","45":"Venonat","46":"Venomoth","47":"Diglett","48":"Dugtrio","49":"Meowth","50":"Persian","51":"Psyduck","52":"Golduck","53":"Mankey","54":"Primeape","55":"Growlithe","56":"Arcanine","57":"Poliwag","58":"Poliwhirl","59":"Poliwrath","60":"Kadabra","61":"Alakazam","62":"Machop","63":"Machoke","64":"Machamp","65":"Bellsprout","66":"Weepinbell","67":"Victreebel","68":"Tentacool","69":"Tentacruel","70":"Geodude","71":"Graveler","72":"Golem","73":"Ponyta","74":"Rapidash","75":"Slowpoke","76":"Slowbro","77":"Magnemite","78":"Magneton","79":"Farfetch'd","80":"Doduo","81":"Dodrio","82":"Seel","83":"Dewgong","84":"Grimer","85":"Muk","86":"Shellder","87":"Cloyster","88":"Gastly","89":"Haunter","90":"Gengar","91":"Onix","92":"Drowzee","93":"Hypno","94":"Krabby","95":"Kingler","96":"Voltorb","97":"Electrode","98":"Exeggcute","99":"Exeggutor","100":"Cubone","101":"Marowak","102":"Hitmonlee","103":"Hitmonchan","104":"Lickitung","105":"Koffing","106":"Weezing","107":"Rhyhorn","108":"Rhydon","109":"Chansey","110":"Tangela","111":"Kangaskhan","112":"Horsea","113":"Seadra","114":"Goldeen","115":"Seaking","116":"Staryu","117":"Starmie","118":"Mr. Mime","119":"Scyther","120":"Jynx","121":"Electabuzz","122":"Magmar","123":"Pinsir","124":"Tauros","125":"Magikarp","126":"Gyarados","127":"Lapras","128":"Eevee","129":"Vaporeon","130":"Jolteon","131":"Flareon","132":"Porygon","133":"Omanyte","134":"Omastar","135":"Kabuto","136":"Kabutops","137":"Aerodactyl","138":"Snorlax","139":"Articuno","140":"Zapdos","141":"Moltres","142":"Dratini","143":"Dragonair","144":"Dragonite","145":"Mewtwo","146":"Mew","147":"Chikorita","148":"Bayleef","149":"Meganium","150":"Cyndaquil","151":"Quilava","152":"Typhlosion","153":"Totodile","154":"Croconaw","155":"Feraligatr","156":"Sentret","157":"Furret","158":"Hoothoot","159":"Noctowl","160":"Ledyba","161":"Ledian","162":"Spinarak","163":"Ariados","164":"Crobat","165":"Chinchou","166":"Lanturn","167":"Pichu","168":"Cleffa","169":"Igglybuff","170":"Togepi","171":"Togetic","172":"Natu","173":"Xatu","174":"Mareep","175":"Flaaffy","176":"Ampharos","177":"Bellossom","178":"Marill","179":"Azumarill","180":"Sudowoodo","181":"Politoed","182":"Hoppip","183":"Skiploom","184":"Jumpluff","185":"Aipom","186":"Sunkern","187":"Sunflora","188":"Yanma","189":"Wooper","190":"Quagsire","191":"Espeon","192":"Umbreon","193":"Murkrow","194":"Slowking","195":"Misdreavus","196":"Unown","197":"Girafarig","198":"Pineco","199":"Forretress","200":"Dunsparce","201":"Gligar","202":"Steelix","203":"Snubbull","204":"Granbull","205":"Qwilfish","206":"Scizor","207":"Shuckle","208":"Heracross","209":"Sneasel","210":"Teddiursa","211":"Ursaring","212":"Slugma","213":"Magcargo","214":"Swinub","215":"Piloswine","216":"Corsola","217":"Remoraid","218":"Octillery","219":"Delibird","220":"Mantine","221":"Skarmory","222":"Houndour","223":"Houndoom","224":"Kingdra","225":"Phanpy","226":"Donphan","227":"Porygon2","228":"Stantler","229":"Tyrogue","230":"Hitmontop","231":"Smoochum","232":"Elekid","233":"Magby","234":"Miltank","235":"Blissey","236":"Raikou","237":"Entei","238":"Suicune","239":"Larvitar","240":"Pupitar","241":"Tyranitar","242":"Lugia","243":"Celebi","244":"Treecko","245":"Grovyle","246":"Sceptile","247":"Torchic","248":"Combusken","249":"Blaziken","250":"Mudkip","251":"Marshtomp","252":"Swampert","253":"Poochyena","254":"Mightyena","255":"Zigzagoon","256":"Linoone","257":"Wurmple","258":"Beautifly","259":"Dustox","260":"Lotad","261":"Lombre","262":"Ludicolo","263":"Seedot","264":"Nuzleaf","265":"Shiftry","266":"Taillow","267":"Swellow","268":"Wingull","269":"Pelipper","270":"Ralts","271":"Kirlia","272":"Gardevoir","273":"Surskit","274":"Masquerain","275":"Shroomish","276":"Breloom","277":"Slakoth","278":"Vigoroth","279":"Slaking","280":"Nincada","281":"Ninjask","282":"Shedinja","283":"Whismur","284":"Loudred","285":"Exploud","286":"Makuhita","287":"Hariyama","288":"Azurill","289":"Nosepass","290":"Skitty","291":"Delcatty","292":"Sableye","293":"Mawile","294":"Aron","295":"Lairon","296":"Aggron","297":"Meditite","298":"Medicham","299":"Electrike","300":"Manectric","301":"Plusle","302":"Minun","303":"Volbeat","304":"Illumise","305":"Roselia","306":"Gulpin","307":"Swalot","308":"Carvanha","309":"Sharpedo","310":"Wailmer","311":"Wailord","312":"Numel","313":"Camerupt","314":"Torkoal","315":"Spoink","316":"Grumpig","317":"Spinda","318":"Trapinch","319":"Vibrava","320":"Flygon","321":"Cacnea","322":"Cacturne","323":"Swablu","324":"Altaria","325":"Zangoose","326":"Seviper","327":"Lunatone","328":"Solrock","329":"Barboach","330":"Whiscash","331":"Corphish","332":"Crawdaunt","333":"Baltoy","334":"Claydol","335":"Lileep","336":"Cradily","337":"Anorith","338":"Armaldo","339":"Feebas","340":"Milotic","341":"Castform","342":"Kecleon","343":"Shuppet","344":"Banette","345":"Duskull","346":"Dusclops","347":"Tropius","348":"Chimecho","349":"Absol","350":"Snorunt","351":"Glalie","352":"Spheal","353":"Sealeo","354":"Walrein","355":"Clamperl","356":"Huntail","357":"Gorebyss","358":"Relicanth","359":"Luvdisc","360":"Bagon","361":"Shelgon","362":"Salamence","363":"Beldum","364":"Metang","365":"Metagross","366":"Regirock","367":"Regice","368":"Registeel","369":"Latias","370":"Latios","371":"Kyogre","372":"Groudon","373":"Rayquaza","374":"Jirachi","375":"Turtwig","376":"Grotle","377":"Torterra","378":"Chimchar","379":"Monferno","380":"Infernape","381":"Piplup","382":"Prinplup","383":"Empoleon","384":"Starly","385":"Staravia","386":"Staraptor","387":"Bidoof","388":"Bibarel","389":"Kricketot","390":"Kricketune","391":"Shinx","392":"Luxio","393":"Luxray","394":"Budew","395":"Roserade","396":"Cranidos","397":"Rampardos","398":"Shieldon","399":"Bastiodon","400":"Burmy","401":"Mothim","402":"Combee","403":"Vespiquen","404":"Pachirisu","405":"Buizel","406":"Floatzel","407":"Cherubi","408":"Cherrim","409":"Shellos","410":"Gastrodon","411":"Ambipom","412":"Drifloon","413":"Drifblim","414":"Buneary","415":"Lopunny","416":"Mismagius","417":"Honchkrow","418":"Glameow","419":"Purugly","420":"Chingling","421":"Stunky","422":"Skuntank","423":"Bronzor","424":"Bronzong","425":"Bonsly","426":"Mime Jr.","427":"Happiny","428":"Chatot","429":"Spiritomb","430":"Gible","431":"Gabite","432":"Garchomp","433":"Munchlax","434":"Riolu","435":"Lucario","436":"Hippopotas","437":"Hippowdon","438":"Skorupi","439":"Drapion","440":"Croagunk","441":"Toxicroak","442":"Carnivine","443":"Finneon","444":"Lumineon","445":"Mantyke","446":"Snover","447":"Abomasnow","448":"Weavile","449":"Magnezone","450":"Lickilicky","451":"Rhyperior","452":"Tangrowth","453":"Electivire","454":"Magmortar","455":"Togekiss","456":"Yanmega","457":"Leafeon","458":"Glaceon","459":"Gliscor","460":"Mamoswine","461":"Porygon-Z","462":"Gallade","463":"Probopass","464":"Dusknoir","465":"Froslass","466":"Rotom","467":"Uxie","468":"Mesprit","469":"Azelf","470":"Dialga","471":"Palkia","472":"Heatran","473":"Regigigas","474":"Cresselia","475":"Phione","476":"Manaphy","477":"Darkrai","478":"Arceus","479":"Victini","480":"Snivy","481":"Servine","482":"Serperior","483":"Tepig","484":"Pignite","485":"Emboar","486":"Oshawott","487":"Dewott","488":"Samurott","489":"Patrat","490":"Watchog","491":"Lillipup","492":"Herdier","493":"Stoutland","494":"Purrloin","495":"Liepard","496":"Pansage","497":"Simisage","498":"Pansear","499":"Simisear","500":"Panpour","501":"Simipour","502":"Munna","503":"Musharna","504":"Pidove","505":"Tranquill","506":"Unfezant","507":"Blitzle","508":"Zebstrika","509":"Roggenrola","510":"Boldore","511":"Gigalith","512":"Woobat","513":"Swoobat","514":"Drilbur","515":"Excadrill","516":"Audino","517":"Timburr","518":"Gurdurr","519":"Conkeldurr","520":"Tympole","521":"Palpitoad","522":"Seismitoad","523":"Throh","524":"Sawk","525":"Sewaddle","526":"Swadloon","527":"Leavanny","528":"Venipede","529":"Whirlipede","530":"Scolipede","531":"Cottonee","532":"Whimsicott","533":"Petilil","534":"Lilligant","535":"Basculin","536":"Sandile","537":"Krokorok","538":"Krookodile","539":"Darumaka","540":"Maractus","541":"Dwebble","542":"Crustle","543":"Scraggy","544":"Scrafty","545":"Sigilyph","546":"Yamask","547":"Cofagrigus","548":"Tirtouga","549":"Carracosta","550":"Archen","551":"Archeops","552":"Trubbish","553":"Garbodor","554":"Zorua","555":"Zoroark","556":"Minccino","557":"Cinccino","558":"Gothita","559":"Gothorita","560":"Gothitelle","561":"Solosis","562":"Duosion","563":"Reuniclus","564":"Ducklett","565":"Swanna","566":"Vanillite","567":"Vanillish","568":"Vanilluxe","569":"Deerling","570":"Sawsbuck","571":"Emolga","572":"Karrablast","573":"Escavalier","574":"Foongus","575":"Amoonguss","576":"Frillish","577":"Jellicent","578":"Alomomola","579":"Joltik","580":"Galvantula","581":"Ferroseed","582":"Ferrothorn","583":"Klink","584":"Klang","585":"Klinklang","586":"Tynamo","587":"Eelektrik","588":"Eelektross","589":"Elgyem","590":"Beheeyem","591":"Litwick","592":"Lampent","593":"Chandelure","594":"Axew","595":"Fraxure","596":"Haxorus","597":"Cubchoo","598":"Beartic","599":"Cryogonal","600":"Shelmet","601":"Accelgor","602":"Stunfisk","603":"Mienfoo","604":"Mienshao","605":"Druddigon","606":"Golett","607":"Golurk","608":"Pawniard","609":"Bisharp","610":"Bouffalant","611":"Rufflet","612":"Braviary","613":"Vullaby","614":"Mandibuzz","615":"Heatmor","616":"Durant","617":"Deino","618":"Zweilous","619":"Hydreigon","620":"Larvesta","621":"Volcarona","622":"Cobalion","623":"Terrakion","624":"Virizion","625":"Reshiram","626":"Zekrom","627":"Kyurem","628":"Genesect","629":"Chespin","630":"Quilladin","631":"Chesnaught","632":"Fennekin","633":"Braixen","634":"Delphox","635":"Froakie","636":"Frogadier","637":"Greninja","638":"Bunnelby","639":"Diggersby","640":"Fletchling","641":"Fletchinder","642":"Talonflame","643":"Scatterbug","644":"Vivillon","645":"Litleo","646":"Pyroar","647":"Flabu00e9bu00e9","648":"Floette","649":"Florges","650":"Skiddo","651":"Gogoat","652":"Pancham","653":"Pangoro","654":"Furfrou","655":"Espurr","656":"Honedge","657":"Doublade","658":"Spritzee","659":"Aromatisse","660":"Swirlix","661":"Slurpuff","662":"Inkay","663":"Malamar","664":"Binacle","665":"Barbaracle","666":"Skrelp","667":"Dragalge","668":"Clauncher","669":"Clawitzer","670":"Helioptile","671":"Heliolisk","672":"Tyrunt","673":"Tyrantrum","674":"Amaura","675":"Aurorus","676":"Sylveon","677":"Hawlucha","678":"Dedenne","679":"Carbink","680":"Goomy","681":"Sliggoo","682":"Goodra","683":"Klefki","684":"Phantump","685":"Trevenant","686":"Bergmite","687":"Avalugg","688":"Noibat","689":"Noivern","690":"Xerneas","691":"Yveltal","692":"Diancie","693":"Volcanion"}
+        const names = {}
+
+        for (const [key, value] of Object.entries(names_object)){
+          names[value] = null
+        }
+
+        const names_arr = Object.keys(names)
+
+        const fight_btn = document.getElementById('fight-btn')
+        fight_btn.addEventListener('click', (e)=>{
+
+            e.preventDefault()
+            if (!('enemy' in data)){
+                let enemy = document.querySelector('.choose-enemy-pokemon-input').value
+                if (enemy in names){
+                    data['enemy'] = enemy
+                } else {
+                    data['enemy'] = names_arr[Math.floor(names_arr.length * Math.random())]
+                }
+                data['enemy moves'] = ['']
+            } else{
+                let enemy_moves = Array.from(document.querySelectorAll('.enemy-move')).map(x => x.value)
+                data['enemy moves'] = enemy_moves
+            }
+
+            if (!('friendly' in data)){
+                let friendly = document.querySelector('.choose-friendly-pokemon-input').value
+                if (friendly in names){
+                    data['friendly'] = friendly
+                } else {
+                    data['friendly'] = names_arr[Math.floor(names_arr.length * Math.random())]
+                }
+                data['friendly moves'] = ['']
+            } else {
+                let friendly_moves = Array.from(document.querySelectorAll('.friendly-move')).map(x => x.value)
+                data['friendly moves'] = friendly_moves
+            }
+            console.log(data)
+            xhttp.open("POST", "/initialize-fight", false)
+
+            xhttp.setRequestHeader('Content-Type', 'application/json');
+            xhttp.send(JSON.stringify(data))
+            window.location.href = "/fight"
+            console.log('done')
+        })
+
+
+    </script>
+    {% endblock script %}
+
+</body>
+</html>

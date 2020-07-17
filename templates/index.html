@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block simulation %}
+    <div class="" id="simulation-container-offline" augmented-ui="tl-round tr-round br-round bl-round r-clip-y exe">
+        <h4>SIMULATION OFFLINE</h4>
+    </div>
+{% endblock simulation %}
+
+
+{% block interface %}
+    <div id="game-options-container" augmented-ui="bl-round br-round tr-round tl-round exe">
+        <div class="pokemon-container" id="friendly" augmented-ui="tr-round tl-round bl-round br-round exe">
+            <div class="choose-pokemon" id="choose-friendly">
+                <h5 class="choose-pokemon-header">Teammate</h5>
+                <div class="input-field pokemon-input">
+                    <input type="text" placeholder="Random Pokemon" id="autocomplete-input" class="autocomplete choose-pokemon-input choose-friendly-pokemon-input">
+                </div>
+            </div>
+        </div>
+        <div class="pokemon-container" id="enemy" augmented-ui="tr-round tl-round bl-round br-round exe">
+            <div class="choose-pokemon" id="choose-enemy">
+                <h5 class="choose-pokemon-header">Adversary</h5>
+                <div class="input-field pokemon-input">
+                    <input type="text" placeholder="Random Pokemon" id="autocomplete-input" class="autocomplete choose-pokemon-input choose-enemy-pokemon-input">
+                </div>
+            </div>
+        </div>
+        <div id="fight">
+            <a id="fight-btn" href="#!" class="" augmented-ui="br-clip tr-clip l-rect exe">Start Simulation</a>
+        </div>
+        <div id="difficulty-settings">
+            <div id="difficulty-easy" augmented-ui="tr-clip br-clip l-clip exe">EASY</div>
+            <div id="difficulty-medium" augmented-ui="tr-clip br-clip l-clip exe">MEDIUM</div>
+            <div id="difficulty-hard" augmented-ui="tr-clip br-clip l-clip exe">HARD</div>
+        </div>
+    </div>
+{% endblock interface %}
+
+
