@@ -3,7 +3,6 @@ click==7.1.2
 Flask==1.1.2
 itsdangerous==1.1.0
 Jinja2==2.11.2
-joblib @ file:///tmp/build/80754af9/joblib_1594236160679/work
 MarkupSafe==1.1.1
 mkl-fft==1.1.0
 mkl-random==1.1.1
