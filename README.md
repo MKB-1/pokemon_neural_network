@@ -20,6 +20,7 @@ Later, when I took an AI course, I realized that my approach was similar to a Mo
 
 ### Built With
 
+* Flask
 * Numpy
 * Pandas
 * Scikit-Learn
