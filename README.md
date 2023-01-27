@@ -1,7 +1,7 @@
 # Pokemon Battle AI
 
   <p align="center">
-  Replicated the Pokemon combat system using Python. Using webscrapped Pokemon Attacks from <a target="_blank" href="https://pokemondb.net/">Pokemon Database</a> and Pokemon Stats I had from my <a target="_blank" href="https://github.com/MKB-1/pokemon_viz">Pokemon Stat Visualization Project</a>, ran a Monte-Carlo simulation with randomly generated Pokemon. Used simulation results to train a neural network. <a target="_blank" href="">Try to beat my AI!</a> 
+  Replicated the Pokemon combat system using Python. Using webscrapped Pokemon Attacks from <a target="_blank" href="https://pokemondb.net/">Pokemon Database</a> and Pokemon Stats I had from my <a target="_blank" href="https://github.com/MKB-1/pokemon_viz">Pokemon Stat Visualization Project</a>, ran a Monte-Carlo simulation with randomly generated Pokemon. Used simulation results to train a neural network.
   </p>
 </div>
 
